@@ -117,4 +117,8 @@ return [
 
     ],
 
+    'telegram' => [
+        'token'=> '173870494:AAE1ZzhraP0wvws1FhfKlWXJ-k0tpogGePQ', //allstop
+        'chat_id' => 154747271,
+    ]
 ];

@@ -14,3 +14,9 @@
 Route::get('/', function () {
     return view('welcome');
 });
+
+
+Route::get('/test', function()
+{
+    return 778899 . " test " . date('Y-m-d H:i:s');
+});
