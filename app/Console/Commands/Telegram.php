@@ -3,9 +3,12 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Rde\Telegram\Connection;
+
 class Telegram extends Command
 {
+    public $me;
+    private $url;
+    private $timeout = 0;
     /**
      * The name and signature of the console command.
      *
@@ -40,8 +43,61 @@ class Telegram extends Command
         $msg = $this->argument('msg', null);
         $app = \App::make('app');
         $config = $app['config']['database']['telegram'];
-        var_dump($config);
-        $conn = new Connection($config['token']);
-        var_dump($conn);
+
+        $this->runn($config['token']);
+        $this->sendMessage(array('chat_id' => $config['chat_id'],'text' => $msg));
+
+    }
+
+    public function runn($token, $target = 'https://api.telegram.org/bot')
+    {
+        $this->url = $target.$token;
+
+        $this->me = $this->__call('getMe', array());
+
+    }
+
+    public function getMe()
+    {
+        return $this->me;
+    }
+
+    public function timeout($t)
+    {
+        $this->timeout = (int) $t;
+
+        return $this;
+    }
+
+    protected function resolveData($str)
+    {
+        $res = json_decode($str);
+
+        if ($res && $res->{'ok'}) return $res->{'result'};
+
+        return false;
+    }
+
+    protected function resolveUrl($api, $params)
+    {
+        ! empty($params) and $payload = is_string($params) ? $params : http_build_query($params);
+
+        return "{$this->url}/{$api}".(isset($payload) ? "?{$payload}" : '');
+    }
+
+    public function __call($method, $params)
+    {
+        $url = $this->resolveUrl($method, array_shift($params));
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, $this->timeout);
+        $ret = curl_exec($ch);
+
+        if ($err = curl_error($ch)) {
+            throw new \RuntimeException($err);
+        }
+
+        return $this->resolveData($ret);
     }
 }
