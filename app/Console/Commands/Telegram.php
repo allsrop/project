@@ -78,17 +78,11 @@ class Telegram extends Command
         return false;
     }
 
-    protected function resolveUrl($api, $params)
-    {
-        ! empty($params) and $payload = is_string($params) ? $params : http_build_query($params);
-
-        return "{$this->url}/{$api}".(isset($payload) ? "?{$payload}" : '');
-    }
-
     public function __call($method, $params)
     {
-        $url = $this->resolveUrl($method, array_shift($params));
-
+        $params = array_shift($params);
+        ! empty($params) and $payload = is_string($params) ? $params : http_build_query($params);
+        $url = "{$this->url}/{$method}".(isset($payload) ? "?{$payload}" : '');
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, $this->timeout);
